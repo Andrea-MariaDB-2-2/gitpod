@@ -12,6 +12,7 @@ import { WorkspaceInstance } from '@gitpod/gitpod-protocol';
 export class PrometheusMetricsExporter {
     protected readonly workspaceStartupTimeHistogram: prom.Histogram;
     protected readonly timeToFirstUserActivityHistogram: prom.Histogram;
+    protected readonly clusterScore: prom.Gauge;
 
     constructor() {
         this.workspaceStartupTimeHistogram = new prom.Histogram({
@@ -25,6 +26,11 @@ export class PrometheusMetricsExporter {
             help: 'The time between a workspace is running and first user activity',
             labelNames: ['region'],
             buckets: prom.exponentialBuckets(2, 2, 10),
+        });
+
+        this.clusterScore = new prom.Gauge({
+            name: 'gitpod_cluster_score',
+            help: 'Current score of the cluster',
         });
     }
 
@@ -45,5 +51,9 @@ export class PrometheusMetricsExporter {
         this.timeToFirstUserActivityHistogram.observe({
             region: instance.region,
         }, timeToFirstUserActivity);
+    }
+
+    setClusterScore(score: number): void {
+        this.clusterScore.set(score)
     }
 }

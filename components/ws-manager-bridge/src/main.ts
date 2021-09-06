@@ -31,6 +31,7 @@ export const start = async (container: Container) => {
         const metricsApp = express();
         prometheusClient.collectDefaultMetrics({ timeout: 5000 });
         metricsApp.get('/metrics', (req, res) => {
+            // Get cluster score here
             res.send(prometheusClient.register.metrics().toString());
         });
         const metricsPort = 9500;
