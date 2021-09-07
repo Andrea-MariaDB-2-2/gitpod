@@ -118,7 +118,7 @@ export class GitpodServerImpl<Client extends GitpodClient, Server extends Gitpod
         this.user = user;
         this.resourceAccessGuard = accessGuard;
 
-        log.debug({ userId: this.user?.id }, `clientRegion: ${this.clientRegion}`);
+        log.debug({ userId: this.user?.id }, `clientRegion: ${clientHeaderFields?.clientRegion}`);
         log.info({ userId: this.user?.id }, 'initializeClient');
 
         this.listenForWorkspaceInstanceUpdates();
