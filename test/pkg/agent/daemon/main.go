@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/gitpod-io/gitpod/content-service/pkg/storage"
+	"github.com/gitpod-io/gitpod/test/pkg/agent/daemon/api"
 	"github.com/gitpod-io/gitpod/test/pkg/integration"
-	"github.com/gitpod-io/gitpod/test/tests/storage/daemon_agent/api"
 )
 
 func main() {
