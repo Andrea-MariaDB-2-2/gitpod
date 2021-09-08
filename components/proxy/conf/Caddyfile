@@ -172,7 +172,7 @@ https://{$GITPOD_DOMAIN} {
 			header_down -expires
 
 			# make sure the browser sees a useful content-type
-			header_down +content-type "text/html; charset=utf-8"
+			# header_down +content-type "text/html; charset=utf-8"
 		}
 	}
 
