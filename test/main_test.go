@@ -50,7 +50,10 @@ func TestMain(m *testing.M) {
 	conf.WithClient(client)
 	conf.WithNamespace(*namespace)
 
-	testenv, err = env.NewWithContext(context.WithValue(context.Background(), "username", *username), conf)
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "username", *username)
+
+	testenv, err = env.NewWithContext(ctx, conf)
 	if err != nil {
 		klog.Fatalf("unexpected error: %v", err)
 	}
