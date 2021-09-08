@@ -78,7 +78,3 @@ func finish() env.Func {
 		return ctx, nil
 	}
 }
-
-type workspaceKey string
-
-const workspaceIDKey = "workspace-id"

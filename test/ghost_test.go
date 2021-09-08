@@ -39,7 +39,7 @@ func TestGhostWorkspace(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			ctx = context.WithValue(ctx, workspaceKey(workspaceIDKey), ws.Req.Id)
+			ctx = test_context.SetWorkspaceID(ctx, ws.Req.Id)
 
 			_, err = integration.WaitForWorkspaceStart(ctx, ws.Req.Id, api)
 			if err != nil {
@@ -52,12 +52,8 @@ func TestGhostWorkspace(t *testing.T) {
 			api := test_context.GetComponentAPI(ctx)
 			defer api.Done(t)
 
-			wsID := ctx.Value(workspaceKey(workspaceIDKey))
-			if wsID == nil {
-				return ctx
-			}
-
-			err := integration.DeleteWorkspace(ctx, api, wsID.(string))
+			wsID := test_context.GetWorkspaceID(ctx)
+			err := integration.DeleteWorkspace(ctx, api, wsID)
 			if err != nil {
 				t.Fatal(err)
 			}

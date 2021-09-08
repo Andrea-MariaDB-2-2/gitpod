@@ -55,18 +55,14 @@ func TestRunDocker(t *testing.T) {
 				t.Fatalf("docker run failed: %s\n%s", resp.Stdout, resp.Stderr)
 			}
 
-			return context.WithValue(ctx, workspaceKey(workspaceIDKey), ws.Req.Id)
+			return test_context.SetWorkspaceID(ctx, ws.Req.Id)
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, _ *envconf.Config) context.Context {
 			api := test_context.GetComponentAPI(ctx)
 			defer api.Done(t)
 
-			wsID := ctx.Value(workspaceKey(workspaceIDKey))
-			if wsID == nil {
-				return ctx
-			}
-
-			err := integration.DeleteWorkspace(ctx, api, wsID.(string))
+			wsID := test_context.GetWorkspaceID(ctx)
+			err := integration.DeleteWorkspace(ctx, api, wsID)
 			if err != nil {
 				t.Fatal(err)
 			}

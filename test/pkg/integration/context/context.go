@@ -10,16 +10,22 @@ import (
 	"github.com/gitpod-io/gitpod/test/pkg/integration"
 )
 
-const (
-	componentAPI = "component-api"
-)
+type componentKey struct{}
 
-type contextKey string
+type workspaceKey struct{}
 
 func GetComponentAPI(ctx context.Context) *integration.ComponentAPI {
-	return ctx.Value(contextKey(componentAPI)).(*integration.ComponentAPI)
+	return ctx.Value(componentKey{}).(*integration.ComponentAPI)
 }
 
 func SetComponentAPI(ctx context.Context, api *integration.ComponentAPI) context.Context {
-	return context.WithValue(ctx, contextKey(componentAPI), api)
+	return context.WithValue(ctx, componentKey{}, api)
+}
+
+func GetWorkspaceID(ctx context.Context) string {
+	return ctx.Value(workspaceKey{}).(string)
+}
+
+func SetWorkspaceID(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, workspaceKey{}, id)
 }
