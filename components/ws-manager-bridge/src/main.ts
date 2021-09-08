@@ -14,7 +14,7 @@ import { TracingManager } from '@gitpod/gitpod-protocol/lib/util/tracing';
 import { ClusterServiceServer } from './cluster-service-server';
 import { BridgeController } from './bridge-controller';
 import { MetaInstanceController } from './meta-instance-controller';
-import { setClusterScore } from "./prometheus-metrics-exporter";
+import { register, setClusterScore } from "./prometheus-metrics-exporter";
 
 log.enableJSONLogging('ws-manager-bridge', undefined);
 
@@ -43,7 +43,8 @@ export const start = async (container: Container) => {
             }).then(function(score) {
                 setClusterScore(score);
             });
-            res.send(prometheusClient.register.metrics().toString());
+            res.set('Content-Type', register.contentType);
+		    res.end(register.metrics());
         });
         const metricsPort = 9500;
         const metricsHttpServer = metricsApp.listen(metricsPort, () => {

@@ -56,3 +56,5 @@ const clusterScore = new prom.Gauge({
 export function setClusterScore(score: number) {
     clusterScore.set(score)
 }
+
+export const register = prom.register;
