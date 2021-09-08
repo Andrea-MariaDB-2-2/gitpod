@@ -77,11 +77,18 @@ func (m HeadlessLogDownload) ServeHTTP(w http.ResponseWriter, r *http.Request, n
 		return fmt.Errorf("Bad Request: /headless-log-download/get returned with code %v", resp.StatusCode)
 	}
 
-	redirectURL, err := io.ReadAll(resp.Body)
+	redirectURLBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("Server error: cannot obtain headless log redirect URL")
 	}
-	repl.Set(redirectURLVariable, string(redirectURL))
+	redirectURL := string(redirectURLBytes)
+
+	if redirectURL == "" {
+		return fmt.Errorf("%s: redirectURL is empty", req.URL)
+	}
+	repl.Set(redirectURLVariable, redirectURL)
+
+	caddy.Log().Sugar().Infof("redirectURL: %s", redirectURL)
 
 	return next.ServeHTTP(w, r)
 }
