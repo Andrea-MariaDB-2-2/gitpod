@@ -157,6 +157,11 @@ https://{$GITPOD_DOMAIN} {
 		}
 
 		reverse_proxy {http.gitpod.headless_log_download_url} {
+			# required for smooth streaming of terminal logs
+			flush_interval -1
+
+			header_up -Accept-Encoding
+
 			header_down -x-guploader-uploadid
 			header_down -etag
 			header_down -x-goog-generation
