@@ -39,24 +39,20 @@ func TestGhostWorkspace(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			ctx = test_context.SetWorkspaceID(ctx, ws.Req.Id)
-
 			_, err = integration.WaitForWorkspaceStart(ctx, ws.Req.Id, api)
 			if err != nil {
 				t.Fatal(err)
 			}
 
+			err = integration.DeleteWorkspace(ctx, api, ws.Req.Id)
+			if err != nil {
+				t.Fatal(err)
+			}
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, _ *envconf.Config) context.Context {
 			api := test_context.GetComponentAPI(ctx)
 			defer api.Done(t)
-
-			wsID := test_context.GetWorkspaceID(ctx)
-			err := integration.DeleteWorkspace(ctx, api, wsID)
-			if err != nil {
-				t.Fatal(err)
-			}
 
 			return ctx
 		}).

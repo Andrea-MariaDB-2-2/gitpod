@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"testing"
 	"time"
 
@@ -76,6 +77,7 @@ func TestRegularWorkspaceTasks(t *testing.T) {
 					}
 
 					t.Cleanup(func() {
+						log.Printf("Using t.Cleanup")
 						_ = integration.DeleteWorkspace(ctx, api, nfo.Req.Id)
 					})
 
