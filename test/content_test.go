@@ -28,8 +28,16 @@ func TestBackup(t *testing.T) {
 			api := integration.NewComponentAPI(ctx, cfg.Namespace(), cfg.Client())
 			return test_context.SetComponentAPI(ctx, api)
 		}).
-		Assess("it can run workspace tasks", func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
+		Assess("it should start a workspace, create and file and successfully create a backup", func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
+			ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+			defer cancel()
+
 			api := test_context.GetComponentAPI(ctx)
+
+			wsm, err := api.WorkspaceManager()
+			if err != nil {
+				t.Fatal(err)
+			}
 
 			ws, err := integration.LaunchWorkspaceDirectly(ctx, api)
 			if err != nil {
@@ -53,24 +61,12 @@ func TestBackup(t *testing.T) {
 				Mode:    0644,
 			}, &resp)
 			if err != nil {
-				wsm, err := api.WorkspaceManager()
-				if err != nil {
-					t.Fatal(err)
-				}
-
 				_, _ = wsm.StopWorkspace(ctx, &wsapi.StopWorkspaceRequest{Id: ws.Req.Id})
 				t.Fatal(err)
 			}
 			rsa.Close()
 
-			sctx, scancel := context.WithTimeout(ctx, 5*time.Second)
-			defer scancel()
-			wsm, err := api.WorkspaceManager()
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			_, err = wsm.StopWorkspace(sctx, &wsapi.StopWorkspaceRequest{
+			_, err = wsm.StopWorkspace(ctx, &wsapi.StopWorkspaceRequest{
 				Id: ws.Req.Id,
 			})
 			if err != nil {
@@ -146,6 +142,9 @@ func TestMissingBackup(t *testing.T) {
 			return test_context.SetComponentAPI(ctx, api)
 		}).
 		Assess("it can run workspace tasks", func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
+			ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+			defer cancel()
+
 			api := test_context.GetComponentAPI(ctx)
 
 			ws, err := integration.LaunchWorkspaceDirectly(ctx, api)
@@ -153,15 +152,12 @@ func TestMissingBackup(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			sctx, scancel := context.WithTimeout(ctx, 5*time.Second)
-			defer scancel()
-
 			wsm, err := api.WorkspaceManager()
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			_, err = wsm.StopWorkspace(sctx, &wsapi.StopWorkspaceRequest{Id: ws.Req.Id})
+			_, err = wsm.StopWorkspace(ctx, &wsapi.StopWorkspaceRequest{Id: ws.Req.Id})
 			if err != nil {
 				t.Fatal(err)
 			}

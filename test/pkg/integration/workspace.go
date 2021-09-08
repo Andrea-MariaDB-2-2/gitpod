@@ -546,13 +546,12 @@ func WaitForWorkspace(ctx context.Context, api *ComponentAPI, instanceID string,
 }
 
 func resolveOrBuildImage(ctx context.Context, api *ComponentAPI, baseRef string) (absref string, err error) {
-	rctx, rcancel := context.WithTimeout(ctx, perCallTimeout)
 	cl, err := api.ImageBuilder()
 	if err != nil {
 		return
 	}
 
-	reslv, err := cl.ResolveWorkspaceImage(rctx, &imgbldr.ResolveWorkspaceImageRequest{
+	reslv, err := cl.ResolveWorkspaceImage(ctx, &imgbldr.ResolveWorkspaceImageRequest{
 		Source: &imgbldr.BuildSource{
 			From: &imgbldr.BuildSource_Ref{
 				Ref: &imgbldr.BuildSourceReference{
@@ -568,7 +567,6 @@ func resolveOrBuildImage(ctx context.Context, api *ComponentAPI, baseRef string)
 			},
 		},
 	})
-	rcancel()
 	if err != nil {
 		return
 	}
@@ -577,11 +575,7 @@ func resolveOrBuildImage(ctx context.Context, api *ComponentAPI, baseRef string)
 		return reslv.Ref, nil
 	}
 
-	//it.t.Log("workspace image isn't built - building now")
-
-	rctx, rcancel = context.WithTimeout(ctx, 5*time.Minute)
-	defer rcancel()
-	bld, err := cl.Build(rctx, &imgbldr.BuildRequest{
+	bld, err := cl.Build(ctx, &imgbldr.BuildRequest{
 		Source: &imgbldr.BuildSource{
 			From: &imgbldr.BuildSource_Ref{
 				Ref: &imgbldr.BuildSourceReference{
@@ -619,9 +613,6 @@ func resolveOrBuildImage(ctx context.Context, api *ComponentAPI, baseRef string)
 
 // DeleteWorkspace cleans up a workspace started during an integration test
 func DeleteWorkspace(ctx context.Context, api *ComponentAPI, instanceID string) error {
-	ctx, cancel := context.WithTimeout(ctx, perCallTimeout)
-	defer cancel()
-
 	wm, err := api.WorkspaceManager()
 	if err != nil {
 		return err

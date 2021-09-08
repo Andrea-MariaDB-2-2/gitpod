@@ -99,6 +99,9 @@ func runContextTests(t *testing.T, tests []ContextTest) {
 			return test_context.SetComponentAPI(ctx, api)
 		}).
 		Assess("should run context tests", func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
+			ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+			defer cancel()
+
 			api := test_context.GetComponentAPI(ctx)
 
 			for _, test := range tests {
@@ -122,10 +125,7 @@ func runContextTests(t *testing.T, tests []ContextTest) {
 					}
 					defer stopWS(false) // we do not wait for stopped here as it does not matter for this test case and speeds things up
 
-					wctx, wcancel := context.WithTimeout(ctx, 1*time.Minute)
-					defer wcancel()
-
-					_, err = integration.WaitForWorkspaceStart(wctx, nfo.LatestInstance.ID, api)
+					_, err = integration.WaitForWorkspaceStart(ctx, nfo.LatestInstance.ID, api)
 					if err != nil {
 						t.Fatal(err)
 					}
