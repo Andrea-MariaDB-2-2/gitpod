@@ -347,6 +347,7 @@ export class ClusterServiceServer {
 
     protected server: grpc.Server | undefined = undefined;
 
+    @inject(WorkspaceClusterDB)
     protected clusterDB: WorkspaceClusterDB;
 
     public async start() {
