@@ -347,6 +347,8 @@ export class ClusterServiceServer {
 
     protected server: grpc.Server | undefined = undefined;
 
+    protected clusterDB: WorkspaceClusterDB;
+
     public async start() {
         // Default value for maxSessionMemory is 10 which is low for this gRPC server
         // See https://nodejs.org/api/http2.html#http2_http2_connect_authority_options_listener.
@@ -376,6 +378,23 @@ export class ClusterServiceServer {
             });
             this.server = undefined;
         }
+    }
+
+    public async getScore(){
+        // TODO(arthur): findFiltered needs a proper filter.
+        // How can I filter with "The cluster where this component is running"?
+        for (const cluster of await this.clusterDB.findFiltered({})) {
+            return new Promise<number>((resolve) => {
+                const clusterStatus = convertToGRPC(cluster);
+                resolve(clusterStatus.getScore())
+            });
+        }
+        // This should never be called.
+        // If gitpod_cluster_score is set to -1, it means ws-manager-bridge failed to list
+        // it's own cluster.
+        return new Promise<number>((res) => {
+            res(-1)
+        });
     }
 
 }
