@@ -13,7 +13,7 @@
 	# https://caddyserver.com/docs/caddyfile/directives#directive-order
 	order gitpod.cors_origin         	before header
 	order gitpod.workspace_download  	before redir
-	order gitpod.headless_log_download  before redir
+	order gitpod.headless_log_download	before redir
 	order gitpod.sec_websocket_key   	before header
 }
 
@@ -142,23 +142,38 @@ https://{$GITPOD_DOMAIN} {
 			service http://server.{$KUBE_NAMESPACE}.{$KUBE_DOMAIN}:3000
 		}
 
+		# redirect works here because we "navigate" to this URL, which makes the browser handle this as primary request, and not fuff around with CORS at all
 		redir {http.gitpod.workspace_download_url} 303
 	}
 
 	@headless_log_download path /headless-log-download*
 	handle @headless_log_download {
-		import google_storage_headers
-
-		header {
-			# The browser needs to see the correct content type to trigger the download.
-			content-type "text/html; charset=utf-8"
+		gitpod.cors_origin {
+			base_domain {$GITPOD_DOMAIN}
 		}
 
 		gitpod.headless_log_download {
 			service http://server.{$KUBE_NAMESPACE}.{$KUBE_DOMAIN}:3000
 		}
 
-		redir {http.gitpod.headless_log_download_url} 303
+		reverse_proxy {http.gitpod.headless_log_download_url} {
+			header_down -x-guploader-uploadid
+			header_down -etag
+			header_down -x-goog-generation
+			header_down -x-goog-metageneration
+			header_down -x-goog-hash
+			header_down -x-goog-stored-content-length
+			header_down -x-gitpod-region
+			header_down -x-goog-stored-content-encoding
+			header_down -x-goog-storage-class
+			header_down -x-goog-generation
+			header_down -x-goog-metageneration
+			header_down -cache-control
+			header_down -expires
+
+			# make sure the browser sees a useful content-type
+			header_down +content-type "text/html; charset=utf-8"
+		}
 	}
 
 	@backend_wss {
