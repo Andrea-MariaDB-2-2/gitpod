@@ -470,7 +470,7 @@ func WaitForWorkspaceStop(ctx context.Context, api *ComponentAPI, instanceID str
 		time.Sleep(200 * time.Millisecond)
 	}
 	if !serviceGone {
-		return nil, xerrors.Errorf("Theia service did not disappear in time")
+		return nil, xerrors.Errorf("workspace service did not disappear in time (theia)")
 	}
 
 	return

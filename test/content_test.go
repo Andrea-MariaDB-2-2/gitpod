@@ -82,12 +82,14 @@ func TestBackup(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			ws, err = integration.LaunchWorkspaceDirectly(ctx, api, integration.WithRequestModifier(func(w *wsapi.StartWorkspaceRequest) error {
-				w.ServicePrefix = ws.Req.ServicePrefix
-				w.Metadata.MetaId = ws.Req.Metadata.MetaId
-				w.Metadata.Owner = ws.Req.Metadata.Owner
-				return nil
-			}))
+			ws, err = integration.LaunchWorkspaceDirectly(ctx, api,
+				integration.WithRequestModifier(func(w *wsapi.StartWorkspaceRequest) error {
+					w.ServicePrefix = ws.Req.ServicePrefix
+					w.Metadata.MetaId = ws.Req.Metadata.MetaId
+					w.Metadata.Owner = ws.Req.Metadata.Owner
+					return nil
+				}),
+			)
 			if err != nil {
 				t.Fatal(err)
 			}
