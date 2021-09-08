@@ -12,7 +12,6 @@ import (
 
 const (
 	componentAPI = "component-api"
-	username     = "username"
 )
 
 type contextKey string

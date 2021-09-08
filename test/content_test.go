@@ -92,7 +92,9 @@ func TestBackup(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			rsa, closer, err = integration.Instrument(integration.ComponentWorkspace, "workspace", cfg.Namespace(), cfg.Client(), integration.WithInstanceID(ws.Req.Id))
+			rsa, closer, err = integration.Instrument(integration.ComponentWorkspace, "workspace", cfg.Namespace(), cfg.Client(),
+				integration.WithInstanceID(ws.Req.Id),
+			)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -105,6 +107,9 @@ func TestBackup(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
+			rsa.Close()
+
 			var found bool
 			for _, f := range ls.Files {
 				if filepath.Base(f) == "foobar.txt" {
