@@ -9,6 +9,7 @@ import { GitpodHostUrl } from '@gitpod/gitpod-protocol/lib/util/gitpod-host-url'
 import moment from 'moment';
 import React, { useState } from 'react';
 import ConfirmationModal from '../components/ConfirmationModal';
+import Modal from '../components/Modal';
 import { ContextMenuEntry } from '../components/ContextMenu';
 import { Item, ItemField, ItemFieldContextMenu, ItemFieldIcon } from '../components/ItemsList';
 import PendingChangesDropdown from '../components/PendingChangesDropdown';
@@ -30,7 +31,8 @@ interface Props {
 }
 
 export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
-    const [isModalVisible, setModalVisible] = useState(false);
+    const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
+    const [isRenameModalVisible, setRenameModalVisible] = useState(false);
     const state: WorkspaceInstancePhase = desc.latestInstance?.status?.phase || 'stopped';
     const currentBranch = desc.latestInstance?.status.repo?.branch || Workspace.getBranchName(desc.workspace) || '<unknown>';
     const ws = desc.workspace;
@@ -45,7 +47,16 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
         {
             title: 'Open',
             href: startUrl.toString()
-        }];
+        },
+        {
+            title: 'Rename ',
+            href: "",
+            onClick: () => {
+                setRenameModalVisible(true);
+            }
+        },
+
+    ];
     if (state === 'running') {
         menuEntries.push({
             title: 'Stop',
@@ -78,7 +89,7 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
                 title: 'Delete',
                 customFontStyle: 'text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300',
                 onClick: () => {
-                    setModalVisible(true);
+                    setDeleteModalVisible(true);
                 }
             }
         );
@@ -111,7 +122,7 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
             </Tooltip>
         </ItemField>
         <ItemFieldContextMenu menuEntries={menuEntries} />
-        {isModalVisible && <ConfirmationModal
+        {isDeleteModalVisible && <ConfirmationModal
             title="Delete Workspace"
             areYouSureText="Are you sure you want to delete this workspace?"
             children={{
@@ -119,10 +130,17 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
                 description: ws.description,
             }}
             buttonText="Delete Workspace"
-            visible={isModalVisible}
-            onClose={() => setModalVisible(false)}
+            visible={isDeleteModalVisible}
+            onClose={() => setDeleteModalVisible(false)}
             onConfirm={() => model.deleteWorkspace(ws.id)}
         />}
+        {isRenameModalVisible &&
+            <Modal
+                visible={true}
+                onClose={() => setRenameModalVisible(false)}>
+                <h3>Rename Workspace</h3>
+            </Modal>
+        }
     </Item>;
 }
 
