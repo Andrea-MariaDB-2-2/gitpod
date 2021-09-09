@@ -36,7 +36,8 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
     const state: WorkspaceInstancePhase = desc.latestInstance?.status?.phase || 'stopped';
     const currentBranch = desc.latestInstance?.status.repo?.branch || Workspace.getBranchName(desc.workspace) || '<unknown>';
     const ws = desc.workspace;
-    const [workspaceName, setWorkspaceName] = useState('');
+    const [workspaceName, setWorkspaceName] = useState(ws.id);
+
     const startUrl = new GitpodHostUrl(window.location.href).with({
         pathname: '/start/',
         hash: '#' + ws.id
@@ -98,7 +99,8 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
     const project = getProject(ws);
 
     function updateWorkspaceName() {
-        console.log("workspaceName > ", workspaceName);
+        setWorkspaceName(workspaceName);
+        setRenameModalVisible(false);
     }
 
     return <Item className="whitespace-nowrap py-6 px-6">
@@ -106,7 +108,7 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
             <WorkspaceStatusIndicator instance={desc?.latestInstance} />
         </ItemFieldIcon>
         <ItemField className="w-3/12 flex flex-col">
-            <a href={startUrl.toString()}><div className="font-medium text-gray-800 dark:text-gray-200 truncate hover:text-blue-600 dark:hover:text-blue-400">{ws.id}</div></a>
+            <a href={startUrl.toString()}><div className="font-medium text-gray-800 dark:text-gray-200 truncate hover:text-blue-600 dark:hover:text-blue-400">{workspaceName}</div></a>
             <Tooltip content={project ? 'https://' + project : ''} allowWrap={true}>
                 <a href={project ? 'https://' + project : undefined}><div className="text-sm overflow-ellipsis truncate text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400">{project || 'Unknown'}</div></a>
             </Tooltip>
@@ -140,21 +142,20 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
             onConfirm={() => model.deleteWorkspace(ws.id)}
         />}
         {isRenameModalVisible &&
-            <Modal
-                visible={true}
-            onClose={() => setRenameModalVisible(false)}
-        >
+            <Modal visible={true} onClose={() => setRenameModalVisible(false)}>
             <h3 className="mb-4">Rename Workspace</h3>
             <div className="border-t border-b border-gray-200 dark:border-gray-800 -mx-6 px-6 py-4 flex flex-col">
-                <input className="w-full" type="text" onChange={(v) => { setWorkspaceName(v.target.value) }} />
-                <div className="mt-1">
-                    <p className="text-gray-500">You can use a friendlier name for this workspace. Workspace URLs and endpoints will remain the same.</p>
+                <div className="flex flex-col space-y-2">
+                    <input className="w-full" type="text" onChange={(v) => { setWorkspaceName(v.target.value) }} />
+                    <div className="mt-1 h-full">
+                        <p className="text-gray-500">You can use a friendlier name for this workspace.</p>
+                        <p className="text-gray-500">Workspace URLs and endpoints will remain the same.</p>
+                    </div>
                 </div>
             </div>
-
             <div className="flex justify-end mt-6">
                 <button className="secondary" onClick={() => setRenameModalVisible(false)}>Cancel</button>
-                <button type="submit" onClick={() => updateWorkspaceName()}>Rename Workspace</button>
+                <button className="ml-2" type="submit" onClick={() => updateWorkspaceName()}>Rename Workspace</button>
             </div>
             </Modal>
         }
