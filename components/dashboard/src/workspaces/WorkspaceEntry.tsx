@@ -97,10 +97,10 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
     }
     const project = getProject(ws);
 
-    function updateWorkspaceName(workspaceName: string) {
+    function updateWorkspaceName() {
         console.log("workspaceName > ", workspaceName);
     }
-    
+
     return <Item className="whitespace-nowrap py-6 px-6">
         <ItemFieldIcon>
             <WorkspaceStatusIndicator instance={desc?.latestInstance} />
@@ -154,7 +154,7 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
 
             <div className="flex justify-end mt-6">
                 <button className="secondary" onClick={() => setRenameModalVisible(false)}>Cancel</button>
-                <button type="submit" onClick={() => updateWorkspaceName(workspaceName)}>Rename Workspace</button>
+                <button type="submit" onClick={() => updateWorkspaceName()}>Rename Workspace</button>
             </div>
             </Modal>
         }
