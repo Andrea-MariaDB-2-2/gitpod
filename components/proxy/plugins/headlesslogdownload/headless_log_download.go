@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/caddyserver/caddy/v2"
@@ -19,6 +20,8 @@ import (
 const (
 	headlessLogDownloadModule = "gitpod.headless_log_download"
 	redirectURLVariable       = "http." + headlessLogDownloadModule + "_url"
+	redirectHostVariable      = "http." + headlessLogDownloadModule + "_host"
+	redirectPathVariable      = "http." + headlessLogDownloadModule + "_path"
 )
 
 func init() {
@@ -49,9 +52,9 @@ func (m HeadlessLogDownload) ServeHTTP(w http.ResponseWriter, r *http.Request, n
 	}
 
 	// server has an endpoint on the same path that returns the
-	url := fmt.Sprintf("%v%v%v", m.Service, r.URL.Path, query)
+	u := fmt.Sprintf("%v%v%v", m.Service, r.URL.Path, query)
 	client := http.Client{Timeout: 5 * time.Second}
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", u, nil)
 	if err != nil {
 		return fmt.Errorf("Server Error: cannot download headless log")
 	}
@@ -81,14 +84,21 @@ func (m HeadlessLogDownload) ServeHTTP(w http.ResponseWriter, r *http.Request, n
 	if err != nil {
 		return fmt.Errorf("Server error: cannot obtain headless log redirect URL")
 	}
-	redirectURL := string(redirectURLBytes)
-
-	if redirectURL == "" {
-		return fmt.Errorf("%s: redirectURL is empty", req.URL)
+	redirectURL, err := url.Parse(string(redirectURLBytes))
+	if err != nil {
+		caddy.Log().Sugar().Errorf("cannot parse redirectURL (%s): %w", redirectURLBytes, err)
+		w.WriteHeader(500)
+		return nil
 	}
-	repl.Set(redirectURLVariable, redirectURL)
 
-	caddy.Log().Sugar().Infof("redirectURL: %s", redirectURL)
+	repl.Set(redirectURLVariable, redirectURL.String())
+	caddy.Log().Sugar().Infof("redirectURL: %s", redirectURL.String())
+
+	repl.Set(redirectHostVariable, redirectURL.Host)
+	caddy.Log().Sugar().Infof("redirectHost: %s", redirectURL.Host)
+	redirectPath := fmt.Sprintf("%s?%s", redirectURL.Path, redirectURL.RawQuery)
+	repl.Set(redirectPathVariable, redirectPath)
+	caddy.Log().Sugar().Infof("redirectPath: %s", redirectPath)
 
 	return next.ServeHTTP(w, r)
 }

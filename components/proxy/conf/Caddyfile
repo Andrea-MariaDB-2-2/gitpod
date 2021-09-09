@@ -152,7 +152,13 @@ https://{$GITPOD_DOMAIN} {
 			service http://server.{$KUBE_NAMESPACE}.{$KUBE_DOMAIN}:3000
 		}
 
-		reverse_proxy {http.gitpod.headless_log_download_url} {
+		reverse_proxy {http.gitpod.headless_log_download_host} {
+			rewrite * {http.gitpod.headless_log_download_path}
+
+			# make upstream HTTPS work
+			header_up Host {upstream_hostport}
+			header_up X-Forwarded-Host {host}
+
 			# required for smooth streaming of terminal logs
 			flush_interval -1
 
@@ -161,6 +167,7 @@ https://{$GITPOD_DOMAIN} {
 			# this corresponds to how we create the SignedURL in content-service
 			header_up +Content-Type "*/*"
 
+			# make sure we don't spill clients with upstream headers
 			header_down -x-guploader-uploadid
 			header_down -etag
 			header_down -x-goog-generation
