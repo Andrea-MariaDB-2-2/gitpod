@@ -6,7 +6,7 @@ components:
         enabled: true
         maxLength: 2
       gcloud:
-        credentialsFile: /credentials/gitpod-dev-syncd-key.json
+        credentialsFile: /credentials/service-account.json
         projectId: gitpod-dev
         region: europe-west1
         parallelUpload: 6
