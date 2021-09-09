@@ -7,7 +7,7 @@ components:
         maxLength: 2
       gcloud:
         credentialsFile: /credentials/service-account.json
-        projectId: gitpod-dev
+        projectId: gitpod-core-dev
         region: europe-west1
         parallelUpload: 6
     volumes:
