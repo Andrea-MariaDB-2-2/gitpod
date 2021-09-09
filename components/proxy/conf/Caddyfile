@@ -161,6 +161,9 @@ https://{$GITPOD_DOMAIN} {
 			flush_interval -1
 
 			header_up -Accept-Encoding
+			header_up -Encoding
+			# this corresponds to how we create the SignedURL in content-service
+			header_up +Content-Type "text/html; charset=utf-8"
 
 			header_down -x-guploader-uploadid
 			header_down -etag
@@ -175,9 +178,6 @@ https://{$GITPOD_DOMAIN} {
 			header_down -x-goog-metageneration
 			header_down -cache-control
 			header_down -expires
-
-			# make sure the browser sees a useful content-type
-			# header_down +content-type "text/html; charset=utf-8"
 		}
 	}
 
