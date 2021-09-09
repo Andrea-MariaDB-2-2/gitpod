@@ -148,10 +148,6 @@ https://{$GITPOD_DOMAIN} {
 
 	@headless_log_download path /headless-log-download*
 	handle @headless_log_download {
-		gitpod.cors_origin {
-			base_domain {$GITPOD_DOMAIN}
-		}
-
 		gitpod.headless_log_download {
 			service http://server.{$KUBE_NAMESPACE}.{$KUBE_DOMAIN}:3000
 		}
@@ -163,7 +159,7 @@ https://{$GITPOD_DOMAIN} {
 			header_up -Accept-Encoding
 			header_up -Encoding
 			# this corresponds to how we create the SignedURL in content-service
-			header_up +Content-Type "text/html; charset=utf-8"
+			header_up +Content-Type "*/*"
 
 			header_down -x-guploader-uploadid
 			header_down -etag

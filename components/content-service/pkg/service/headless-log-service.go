@@ -54,10 +54,7 @@ func (ls *HeadlessLogService) LogDownloadURL(ctx context.Context, req *api.LogDo
 	defer tracing.FinishSpan(span, &err)
 
 	blobName := ls.s.InstanceObject(req.WorkspaceId, req.InstanceId, logs.UploadedHeadlessLogPath(req.TaskId))
-	info, err := ls.s.SignDownload(ctx, ls.s.Bucket(req.OwnerId), blobName, &storage.SignedURLOptions{
-		// this corresponds to how we access the signed URL from the proxy
-		ContentType: "text/html; charset=utf-8",
-	})
+	info, err := ls.s.SignDownload(ctx, ls.s.Bucket(req.OwnerId), blobName, &storage.SignedURLOptions{})
 	if err != nil {
 		log.WithFields(log.OWI(req.OwnerId, req.WorkspaceId, "")).
 			WithField("bucket", ls.s.Bucket(req.OwnerId)).
