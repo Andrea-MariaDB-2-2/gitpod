@@ -13,7 +13,7 @@
 	# https://caddyserver.com/docs/caddyfile/directives#directive-order
 	order gitpod.cors_origin         	before header
 	order gitpod.workspace_download  	before redir
-	order gitpod.headless_log_download	before redir
+	order gitpod.headless_log_download	before rewrite
 	order gitpod.sec_websocket_key   	before header
 }
 
@@ -152,18 +152,25 @@ https://{$GITPOD_DOMAIN} {
 			service http://server.{$KUBE_NAMESPACE}.{$KUBE_DOMAIN}:3000
 		}
 
-		reverse_proxy {http.gitpod.headless_log_download_host} {
-			rewrite * {http.gitpod.headless_log_download_path}
+		rewrite * {http.gitpod.headless_log_download_path}?{http.gitpod.headless_log_download_query}
+		reverse_proxy storage.googleapis.com:443 {
 
 			# make upstream HTTPS work
-			header_up Host {upstream_hostport}
 			header_up X-Forwarded-Host {host}
+			header_up X-Forwarded-Proto "https"
+			header_up Host {http.gitpod.headless_log_download_host}
+			header_up -Sec-Fetch-Site
+			header_up -Sec-Fetch-Dest
+			header_up -Sec-Fetch-Mode
+			# header_up +Sec-Fetch-Site "cross-site" #none
+			# header_up +Sec-Fetch-Dest "document"
+			# header_up +Sec-Fetch-Mode "navigate"
 
 			# required for smooth streaming of terminal logs
 			flush_interval -1
 
-			header_up -Accept-Encoding
-			header_up -Encoding
+			# header_up -Accept-Encoding
+			# header_up -Encoding
 			# this corresponds to how we create the SignedURL in content-service
 			header_up +Content-Type "*/*"
 
@@ -253,8 +260,12 @@ https://{$GITPOD_DOMAIN} {
 	}
 
 	handle_errors {
-		redir https://{$GITPOD_DOMAIN}/sorry/#Error%20{http.reverse_proxy.status_text} 302
+		respond "{http.error.status_code} {http.error.status_text}" {http.error.status_code}
 	}
+
+	# handle_errors {
+	# 	redir https://{$GITPOD_DOMAIN}/sorry/#Error%20{http.reverse_proxy.status_text} 302
+	# }
 }
 
 # workspaces

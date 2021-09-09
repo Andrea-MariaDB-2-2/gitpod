@@ -18,10 +18,12 @@ import (
 )
 
 const (
-	headlessLogDownloadModule = "gitpod.headless_log_download"
-	redirectURLVariable       = "http." + headlessLogDownloadModule + "_url"
-	redirectHostVariable      = "http." + headlessLogDownloadModule + "_host"
-	redirectPathVariable      = "http." + headlessLogDownloadModule + "_path"
+	headlessLogDownloadModule   = "gitpod.headless_log_download"
+	redirectURLVariable         = "http." + headlessLogDownloadModule + "_url"
+	redirectHostVariable        = "http." + headlessLogDownloadModule + "_host"
+	redirectHostAndPortVariable = "http." + headlessLogDownloadModule + "_hostPort"
+	redirectPathVariable        = "http." + headlessLogDownloadModule + "_path"
+	redirectQueryVariable       = "http." + headlessLogDownloadModule + "_query"
 )
 
 func init() {
@@ -94,11 +96,27 @@ func (m HeadlessLogDownload) ServeHTTP(w http.ResponseWriter, r *http.Request, n
 	repl.Set(redirectURLVariable, redirectURL.String())
 	caddy.Log().Sugar().Infof("redirectURL: %s", redirectURL.String())
 
+	redirectPort := redirectURL.Port()
+	if redirectPort == "" {
+		if redirectURL.Scheme == "http" {
+			redirectPort = "80"
+		} else if redirectURL.Scheme == "https" {
+			redirectPort = "443"
+		}
+	}
+	redirectHostAndPort := fmt.Sprintf("%s:%s", redirectURL.Host, redirectPort)
+	repl.Set(redirectHostAndPortVariable, redirectHostAndPort)
+	caddy.Log().Sugar().Infof("redirectHostAndPort: %s", redirectHostAndPort)
 	repl.Set(redirectHostVariable, redirectURL.Host)
 	caddy.Log().Sugar().Infof("redirectHost: %s", redirectURL.Host)
-	redirectPath := fmt.Sprintf("%s?%s", redirectURL.Path, redirectURL.RawQuery)
-	repl.Set(redirectPathVariable, redirectPath)
-	caddy.Log().Sugar().Infof("redirectPath: %s", redirectPath)
+	repl.Set(redirectPathVariable, redirectURL.Path)
+	caddy.Log().Sugar().Infof("redirectPath: %s", redirectURL.Path)
+	decodedQuery, err := url.QueryUnescape(redirectURL.RawQuery)
+	if err != nil {
+		return err
+	}
+	repl.Set(redirectQueryVariable, decodedQuery)
+	caddy.Log().Sugar().Infof("redirectQuery: %s", decodedQuery)
 
 	return next.ServeHTTP(w, r)
 }
