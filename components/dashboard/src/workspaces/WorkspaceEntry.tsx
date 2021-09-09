@@ -36,6 +36,7 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
     const state: WorkspaceInstancePhase = desc.latestInstance?.status?.phase || 'stopped';
     const currentBranch = desc.latestInstance?.status.repo?.branch || Workspace.getBranchName(desc.workspace) || '<unknown>';
     const ws = desc.workspace;
+    const [workspaceName, setWorkspaceName] = useState('');
     const startUrl = new GitpodHostUrl(window.location.href).with({
         pathname: '/start/',
         hash: '#' + ws.id
@@ -96,6 +97,10 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
     }
     const project = getProject(ws);
 
+    function updateWorkspaceName(workspaceName: string) {
+        console.log("workspaceName > ", workspaceName);
+    }
+    
     return <Item className="whitespace-nowrap py-6 px-6">
         <ItemFieldIcon>
             <WorkspaceStatusIndicator instance={desc?.latestInstance} />
@@ -137,8 +142,20 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
         {isRenameModalVisible &&
             <Modal
                 visible={true}
-                onClose={() => setRenameModalVisible(false)}>
-                <h3>Rename Workspace</h3>
+            onClose={() => setRenameModalVisible(false)}
+        >
+            <h3 className="mb-4">Rename Workspace</h3>
+            <div className="border-t border-b border-gray-200 dark:border-gray-800 -mx-6 px-6 py-4 flex flex-col">
+                <input className="w-full" type="text" onChange={(v) => { setWorkspaceName(v.target.value) }} />
+                <div className="mt-1">
+                    <p className="text-gray-500">You can use a friendlier name for this workspace. Workspace URLs and endpoints will remain the same.</p>
+                </div>
+            </div>
+
+            <div className="flex justify-end mt-6">
+                <button className="secondary" onClick={() => setRenameModalVisible(false)}>Cancel</button>
+                <button type="submit" onClick={() => updateWorkspaceName(workspaceName)}>Rename Workspace</button>
+            </div>
             </Modal>
         }
     </Item>;
