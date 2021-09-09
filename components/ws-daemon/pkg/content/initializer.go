@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -223,20 +224,30 @@ func RunInitializer(ctx context.Context, destination string, initializer *csapi.
 		return err
 	}
 
-	var withDebug string
-	if log.Log.Logger.IsLevelEnabled(logrus.DebugLevel) {
-		withDebug = "--debug"
+	args := []string{
+		"--root", "state", "--log-format", "json",
 	}
 
-	rw := log.Writer(log.WithFields(opts.OWI))
-	defer rw.Close()
-	cmd = exec.Command("runc", "--root", "state", withDebug, "--log-format", "json", "run", "gogogo")
+	logFile, err := os.CreateTemp("", "runc")
+	if err != nil {
+		return xerrors.Errorf("cannot create temporal file: %w", err)
+	}
+	defer os.Remove(logFile.Name())
+
+	if log.Log.Logger.IsLevelEnabled(logrus.DebugLevel) {
+		args = append(args, "--debug", "--log", logFile.Name())
+	}
+
+	args = append(args, "run", "gogogo")
+
+	cmd = exec.Command("runc", args...)
 	cmd.Dir = tmpdir
-	cmd.Stdout = rw
-	cmd.Stderr = rw
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	err = cmd.Run()
 	if err != nil {
+		parseRuncLog(logFile, log.Log.Logger.Level)
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			// The program has exited with an exit code != 0. If it's 42, it was deliberate.
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() == 42 {
@@ -247,7 +258,29 @@ func RunInitializer(ctx context.Context, destination string, initializer *csapi.
 		return err
 	}
 
+	parseRuncLog(logFile, logrus.DebugLevel)
 	return nil
+}
+
+type jsonEntry struct {
+	Level logrus.Level `json:"level"`
+	Msg   string       `json:"msg"`
+}
+
+// parseRuncLog reads a logrus log file in JSON format, filters the entries
+// using a logLevel a threshold and sends the formatted content to stdout
+func parseRuncLog(logFile io.Reader, logLevel logrus.Level) {
+	dec := json.NewDecoder(logFile)
+	for {
+		var entry jsonEntry
+		if err := dec.Decode(&entry); err != nil {
+			continue
+		}
+
+		if logLevel >= entry.Level {
+			log.Log.Logger.Log(entry.Level, entry.Msg)
+		}
+	}
 }
 
 // RunInitializerChild is the function that's expected to run when we call `/proc/self/exe content-initializer`
