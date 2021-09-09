@@ -38,10 +38,12 @@ export const start = async (container: Container) => {
         const metricsApp = express();
         prometheusClient.collectDefaultMetrics({ timeout: 5000 });
         metricsApp.get('/metrics', (req, res) => {
-            new Promise<number>(function(res, rej) {
-                res(clusterServiceServer.getScore())
+            new Promise<number | undefined>(function(res, rej) {
+                res(bridgeController.getScore())
             }).then(function(score) {
-                setClusterScore(score);
+                if (score){
+                    setClusterScore(score);
+                }
             });
             res.set('Content-Type', register.contentType);
 		    res.end(register.metrics());

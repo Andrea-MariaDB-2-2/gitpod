@@ -118,6 +118,23 @@ export class BridgeController {
             bridge.stop();
         }
     }
+
+    public async getScore() {
+        const allClusters = await this.getAllWorkspaceClusters();
+        for (const [name, _] of this.bridges) {
+            let cluster = allClusters.get(name);
+            return new Promise<number>((resolve) => {
+                if (cluster) {
+                    resolve(cluster.score)
+                } else {
+                    // This should never be called.
+                    // If gitpod_cluster_score is set to -1, it means ws-manager-bridge failed to list
+                    // it's own cluster.
+                    resolve(-1);
+                }
+            });
+        }
+    }
 }
 
 @injectable()
