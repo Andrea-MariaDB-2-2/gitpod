@@ -15,6 +15,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	wsapi "github.com/gitpod-io/gitpod/ws-manager/api"
 	wsmock "github.com/gitpod-io/gitpod/ws-manager/api/mock"
@@ -178,10 +179,12 @@ func TestRemoteInfoProvider(t *testing.T) {
 }
 
 var (
+	startedAt           = time.Date(2021, 1, 1, 00, 00, 00, 00, time.UTC)
 	testWorkspaceStatus = &wsapi.WorkspaceStatus{
 		Id: "e63cb5ff-f4e4-4065-8554-b431a32c0000",
 		Metadata: &wsapi.WorkspaceMetadata{
-			MetaId: "e63cb5ff-f4e4-4065-8554-b431a32c2714",
+			MetaId:    "e63cb5ff-f4e4-4065-8554-b431a32c2714",
+			StartedAt: timestamppb.New(startedAt),
 		},
 		Auth: &wsapi.WorkspaceAuthentication{
 			Admission:  wsapi.AdmissionLevel_ADMIT_OWNER_ONLY,
@@ -216,5 +219,6 @@ var (
 		},
 		URL:         testWorkspaceStatus.Spec.Url,
 		WorkspaceID: testWorkspaceStatus.Metadata.MetaId,
+		StartedAt:   startedAt,
 	}
 )

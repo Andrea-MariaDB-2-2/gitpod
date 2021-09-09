@@ -78,8 +78,9 @@ type WorkspaceInfo struct {
 	// (parsed from URL)
 	IDEPublicPort string
 
-	Ports []PortInfo
-	Auth  *wsapi.WorkspaceAuthentication
+	Ports     []PortInfo
+	Auth      *wsapi.WorkspaceAuthentication
+	StartedAt time.Time
 }
 
 // PortInfo contains all information ws-proxy needs to know about a workspace port
@@ -265,7 +266,7 @@ func (p *RemoteWorkspaceInfoProvider) listen(client wsapi.WorkspaceManagerClient
 		}
 
 		if status.Phase == wsapi.WorkspacePhase_STOPPED {
-			p.cache.Delete(status.Metadata.MetaId)
+			p.cache.Delete(status.Metadata.MetaId, status.Metadata.StartedAt.AsTime())
 		} else {
 			info := mapWorkspaceStatusToInfo(status)
 			p.cache.Insert(info)
@@ -309,6 +310,7 @@ func mapWorkspaceStatusToInfo(status *wsapi.WorkspaceStatus) *WorkspaceInfo {
 		IDEPublicPort: getPortStr(status.Spec.Url),
 		Ports:         portInfos,
 		Auth:          status.Auth,
+		StartedAt:     status.Metadata.StartedAt.AsTime(),
 	}
 }
 
@@ -400,6 +402,18 @@ func (c *workspaceInfoCache) Insert(info *WorkspaceInfo) {
 }
 
 func (c *workspaceInfoCache) doInsert(info *WorkspaceInfo) {
+	existing := c.infos[info.WorkspaceID]
+	if existing != nil {
+		// Do not insert if the current workspace is newer
+		// This works around issues when a workspace is deleted then restarted in quick succession
+		// and the stopping event occurs after the replocement pod is started
+		if !existing.StartedAt.IsZero() && !info.StartedAt.IsZero() {
+			if existing.StartedAt.After(info.StartedAt) {
+				log.WithField("workspaceID", existing.WorkspaceID).Debug("ignoring insert of older workspace")
+				return
+			}
+		}
+	}
 	c.infos[info.WorkspaceID] = info
 	c.coordsByPublicPort[info.IDEPublicPort] = &WorkspaceCoords{
 		ID: info.WorkspaceID,
@@ -413,13 +427,22 @@ func (c *workspaceInfoCache) doInsert(info *WorkspaceInfo) {
 	}
 }
 
-func (c *workspaceInfoCache) Delete(workspaceID string) {
+func (c *workspaceInfoCache) Delete(workspaceID string, startedAt time.Time) {
 	c.cond.L.Lock()
 	defer c.cond.L.Unlock()
 
 	info, present := c.infos[workspaceID]
 	if !present || info == nil {
 		return
+	}
+	// Do not delete if the current workspace info is newer
+	// This works around issues when a workspace is deleted then restarted in quick succession
+	// and the delete event occurs after the replocement pod is started
+	if !startedAt.IsZero() && !info.StartedAt.IsZero() {
+		if info.StartedAt.After(startedAt) {
+			log.WithField("workspaceID", workspaceID).WithField("startedAt", startedAt).WithField("info", info).Debug("ignoring delete of older workspace")
+			return
+		}
 	}
 	delete(c.coordsByPublicPort, info.IDEPublicPort)
 	delete(c.infos, workspaceID)
