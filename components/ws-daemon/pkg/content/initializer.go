@@ -242,12 +242,12 @@ func RunInitializer(ctx context.Context, destination string, initializer *csapi.
 
 	cmd = exec.Command("runc", args...)
 	cmd.Dir = tmpdir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = io.Discard
+	cmd.Stderr = io.Discard
 	cmd.Stdin = os.Stdin
 	err = cmd.Run()
 	if err != nil {
-		parseRuncLog(logFile, log.Log.Logger.Level)
+		parseRuncLog(logFile, logrus.DebugLevel)
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			// The program has exited with an exit code != 0. If it's 42, it was deliberate.
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() == 42 {
@@ -258,7 +258,7 @@ func RunInitializer(ctx context.Context, destination string, initializer *csapi.
 		return err
 	}
 
-	parseRuncLog(logFile, logrus.DebugLevel)
+	parseRuncLog(logFile, log.Log.Logger.Level)
 	return nil
 }
 
