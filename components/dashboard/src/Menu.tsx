@@ -21,7 +21,6 @@ import ContextMenu from "./components/ContextMenu";
 import Separator from "./components/Separator";
 import PillMenuItem from "./components/PillMenuItem";
 import TabMenuItem from "./components/TabMenuItem";
-import { trackButton } from "./Analytics";
 
 interface Entry {
     title: string,
@@ -148,7 +147,7 @@ export default function Menu() {
         return (
             <div className="flex p-1 pl-3 ">
                 {projectName && <div className="flex h-full rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-1">
-                    <Link to={team ? `/${team.slug}/projects` : "/workspaces"}>
+                    <Link to={team ? `/${team.slug}/projects` : "/workspaces"} data-analytics='{"button_type":"menu"}'>
                         <span className="text-base text-gray-600 dark:text-gray-400 font-semibold">{team?.name || userFullName}</span>
                     </Link>
                 </div>}
@@ -179,7 +178,7 @@ export default function Menu() {
                         })).sort((a, b) => a.title.toLowerCase() > b.title.toLowerCase() ? 1 : -1),
                         {
                             title: 'Create a new team',
-                            customContent: <div className="w-full text-gray-400 flex items-center" onClick={() => {trackButton("menu", "new_team", "dropdown")}}>
+                            customContent: <div className="w-full text-gray-400 flex items-center">
                                 <span className="flex-1 font-semibold">New Team</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14" className="w-3.5"><path fill="currentColor" fill-rule="evenodd" d="M7 0a1 1 0 011 1v5h5a1 1 0 110 2H8v5a1 1 0 11-2 0V8H1a1 1 0 010-2h5V1a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                             </div>,
@@ -194,7 +193,7 @@ export default function Menu() {
                 </div>
                 {projectName && (
                     <div className="flex h-full rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-1">
-                        <Link to={`/${teamOrUserSlug}/${projectName}${prebuildId ? "/prebuilds" : ""}`}>
+                        <Link to={`/${teamOrUserSlug}/${projectName}${prebuildId ? "/prebuilds" : ""}`} data-analytics='{"button_type":"menu"}'>
                             <span className="text-base text-gray-600 dark:text-gray-400 font-semibold">{projectName}</span>
                         </Link>
                     </div>
@@ -213,7 +212,7 @@ export default function Menu() {
         <header className={`lg:px-28 px-10 flex flex-col pt-4 space-y-4 ${isMinimalUI || !!prebuildId ? 'pb-4' : ''}`}>
             <div className="flex h-10">
                 <div className="flex justify-between items-center pr-3">
-                    <Link to="/">
+                    <Link to="/" data-analytics='{"button_type:"menu"}'>
                         <img src={gitpodIcon} className="h-6" />
                     </Link>
                     {!isMinimalUI && <div className="ml-2 text-base">

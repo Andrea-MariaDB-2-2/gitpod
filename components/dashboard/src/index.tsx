@@ -10,7 +10,6 @@ import App from './App';
 import { UserContextProvider } from './user-context';
 import { TeamsContextProvider } from './teams/teams-context';
 import { ThemeContextProvider } from './theme-context';
-import { BrowserRouter } from 'react-router-dom';
 import "./index.css"
 
 
@@ -19,9 +18,7 @@ ReactDOM.render(
         <UserContextProvider>
             <TeamsContextProvider>
                 <ThemeContextProvider>
-                    <BrowserRouter>
                         <App />
-                    </BrowserRouter>
                 </ThemeContextProvider>
             </TeamsContextProvider>
         </UserContextProvider>

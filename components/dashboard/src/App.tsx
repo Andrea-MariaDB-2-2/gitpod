@@ -6,6 +6,7 @@
 
 import React, { Suspense, useContext, useEffect, useState } from 'react';
 import Menu from './Menu';
+import { BrowserRouter } from 'react-router-dom';
 import { Redirect, Route, Switch } from "react-router";
 
 import { Login } from './Login';
@@ -16,8 +17,7 @@ import { getGitpodService } from './service/service';
 import { shouldSeeWhatsNew, WhatsNew } from './whatsnew/WhatsNew';
 import gitpodIcon from './icons/gitpod.svg';
 import { ErrorCodes } from '@gitpod/gitpod-protocol/lib/messaging/error';
-import { useHistory } from "react-router-dom";
-import { trackLocation, trackPathChange } from './Analytics';
+import { trackButtonOrAnchor, trackLocation } from './Analytics';
 
 const Setup = React.lazy(() => import(/* webpackPrefetch: true */ './Setup'));
 const Workspaces = React.lazy(() => import(/* webpackPrefetch: true */ './workspaces/Workspaces'));
@@ -67,7 +67,6 @@ function App() {
     const { user, setUser } = useContext(UserContext);
     const { teams, setTeams } = useContext(TeamsContext);
     const { setIsDark } = useContext(ThemeContext);
-    const history = useHistory();
 
     const [loading, setLoading] = useState<boolean>(true);
     const [isWhatsNewShown, setWhatsNewShown] = useState(false);
@@ -125,13 +124,6 @@ function App() {
         }
     }, []);
 
-    // listen and notify Segment of client-side path updates
-    useEffect(() => {
-        return history.listen((location: any) => {
-            trackPathChange(window.location.pathname);
-        })
-    }, [history])
-
     // redirect to website for any website slugs
     if (isGitpodIo() && isWebsiteSlug(window.location.pathname)) {
         window.location.host = 'www.gitpod.io';
@@ -179,6 +171,14 @@ function App() {
         if (window.location.pathname === '/') {
             window.location.reload(true);
         }
+    }, false);
+
+    window.addEventListener("click", function (props) {
+        //only process when the click was on a button or anchor element
+        if (!(props?.target instanceof HTMLButtonElement || props?.target instanceof HTMLAnchorElement)) {
+            return;
+        }
+        trackButtonOrAnchor(props.target);
     }, false);
 
     let toRender: React.ReactElement = <Route>
@@ -288,9 +288,11 @@ function App() {
     }
 
     return (
-        <Suspense fallback={<Loading />}>
-            {toRender}
-        </Suspense>
+        <BrowserRouter>
+            <Suspense fallback={<Loading />}>
+                {toRender}
+            </Suspense>
+        </BrowserRouter>
     );
 }
 

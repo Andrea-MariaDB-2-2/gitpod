@@ -17,7 +17,7 @@ import copy from '../images/copy.svg';
 import { getGitpodService } from "../service/service";
 import { UserContext } from "../user-context";
 import { TeamsContext, getCurrentTeam } from "./teams-context";
-import { trackButton, trackEvent } from "../Analytics";
+import { trackEvent } from "../Analytics";
 
 
 export default function () {
@@ -182,10 +182,7 @@ export default function () {
                                 ? [{
                                     title: 'Leave Team',
                                     customFontStyle: 'text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300',
-                                    onClick: () => {
-                                        trackButton("/<team_name>/members","leave_team","kebab_menu");
-                                        removeTeamMember(m.userId);
-                                    }
+                                    onClick: () => removeTeamMember(m.userId)
                                 }]
                                 : (ownMemberInfo?.role === 'owner'
                                     ? [{

@@ -21,7 +21,6 @@ import StatusDone from "../icons/StatusDone.svg";
 import StatusPaused from "../icons/StatusPaused.svg";
 import StatusRunning from "../icons/StatusRunning.svg";
 import StatusFailed from "../icons/StatusFailed.svg";
-import { trackButton } from "../Analytics";
 
 export default function () {
     const location = useLocation();
@@ -29,8 +28,8 @@ export default function () {
 
     const { teams } = useContext(TeamsContext);
     const team = getCurrentTeam(location, teams);
-    const [ projects, setProjects ] = useState<Project[]>([]);
-    const [ lastPrebuilds, setLastPrebuilds ] = useState<Map<string, PrebuildWithStatus>>(new Map());
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [lastPrebuilds, setLastPrebuilds] = useState<Map<string, PrebuildWithStatus>>(new Map());
 
     const { isDark } = useContext(ThemeContext);
 
@@ -38,7 +37,7 @@ export default function () {
 
     useEffect(() => {
         updateProjects();
-    }, [ teams ]);
+    }, [teams]);
 
     const updateProjects = async () => {
         if (!teams) {
@@ -102,8 +101,8 @@ export default function () {
                 <h3 className="text-center text-gray-500 mt-8">No Recent Projects</h3>
                 <p className="text-center text-base text-gray-500 mt-4">Add projects to enable and manage Prebuilds.<br /><a className="gp-link" href="https://www.gitpod.io/docs/prebuilds/">Learn more about Prebuilds</a></p>
                 <div className="flex space-x-2 justify-center mt-7">
-                    <Link to={newProjectUrl}><button onClick={() => trackButton("/projects","new_project","primary_button") }>New Project</button></Link>
-                    {team && <Link to="./members"  ><button onClick={() => trackButton("/projects","invite_members","secondary_button") } className="secondary">Invite Members</button></Link>}
+                    <Link to={newProjectUrl}><button>New Project</button></Link>
+                    {team && <Link to="./members"  ><button className="secondary">Invite Members</button></Link>}
                 </div>
             </div>
 
@@ -120,12 +119,8 @@ export default function () {
                     <div className="flex-1" />
                     <div className="py-3 pl-3">
                     </div>
-                    {team && <Link to="./members" className="flex"><button className="ml-2 secondary" onClick={() => trackButton("/projects","invite_members","secondary_button")}>Invite Members</button></Link>}
-                    <button className="ml-2" onClick={() => {
-                        trackButton("/projects","new_project","primary_button");
-                        onNewProject();
-                    }
-                    }>New Project</button>
+                    {team && <Link to="./members" className="flex"><button className="ml-2 secondary">Invite Members</button></Link>}
+                    <button className="ml-2" onClick={() => onNewProject()}>New Project</button>
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-4">
                     {projects.filter(filter).map(p => (<div key={`project-${p.id}`} className="h-52">
@@ -140,10 +135,7 @@ export default function () {
                                         <ContextMenu menuEntries={[{
                                             title: "Remove Project",
                                             customFontStyle: 'text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300',
-                                            onClick: () => {
-                                                trackButton("/<team_name>/projects","remove_project","kebab_menu");
-                                                onRemoveProject(p);
-                                            }
+                                            onClick: () => onRemoveProject(p)
                                         }]} />
                                     </div>
                                 </div>
@@ -186,7 +178,7 @@ export default function () {
                     {!searchFilter && (
                         <div key="new-project"
                             className="h-52 border-dashed border-2 border-gray-100 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl focus:bg-gitpod-kumquat-light transition ease-in-out group">
-                            <Link to={newProjectUrl} onClick={() => trackButton("/projects","new_project","card")}>
+                            <Link to={newProjectUrl} data-analytics='{"button_type":"card"}'>
                                 <div className="flex h-full">
                                     <div className="m-auto text-gray-400 dark:text-gray-600">New Project</div>
                                 </div>

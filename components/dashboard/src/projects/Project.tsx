@@ -15,7 +15,6 @@ import { TeamsContext, getCurrentTeam } from "../teams/teams-context";
 import { prebuildStatusIcon, prebuildStatusLabel } from "./Prebuilds";
 import { ContextMenuEntry } from "../components/ContextMenu";
 import { shortCommitMessage } from "./render-utils";
-import { trackButton } from "../Analytics";
 
 export default function () {
     const history = useHistory();
@@ -66,10 +65,7 @@ export default function () {
         const entries: ContextMenuEntry[] = [];
         entries.push({
             title: "Rerun Prebuild",
-            onClick: () => {
-                trackButton("/<team_name>/<project_name>","rerun_prebuild","kebab_menu");
-                triggerPrebuild(branch);
-            }
+            onClick: () => triggerPrebuild(branch)
         });
         return entries;
     }
@@ -180,7 +176,7 @@ export default function () {
                             </div>
                             <span className="flex-grow" />
                             <a href={gitpodHostUrl.withContext(`${branch.url}`).toString()}>
-                                <button className={`primary mr-2 py-2 opacity-0 group-hover:opacity-100`} onClick={() => trackButton("/<team_name>/<project_name>","new_workspace","primary_button") }>New Workspace</button>
+                                <button className={`primary mr-2 py-2 opacity-0 group-hover:opacity-100`}>New Workspace</button>
                             </a>
                             <ItemFieldContextMenu className="py-0.5" menuEntries={branchContextMenu(branch)} />
                         </ItemField>

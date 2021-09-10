@@ -14,7 +14,6 @@ import { WorkspaceEntry } from "./WorkspaceEntry";
 import { getGitpodService, gitpodHostUrl } from "../service/service";
 import {StartWorkspaceModal, WsStartEntry} from "./StartWorkspaceModal";
 import { Item, ItemField, ItemFieldContextMenu, ItemFieldIcon, ItemsList } from "../components/ItemsList";
-import { trackButton } from "../Analytics";
 
 export interface WorkspacesProps {
 }
@@ -53,7 +52,6 @@ export default class Workspaces extends React.Component<WorkspacesProps, Workspa
     }
 
     protected showStartWSModal = () => {
-        trackButton("/workspaces","new_workspace","primary_button");
         this.setState({
             isTemplateModelOpen: true
         });

@@ -89,11 +89,11 @@ function ContextMenu(props: ContextMenuProps) {
                         </div>
                         const key = `entry-${menuId}-${index}-${e.title}`;
                         if (e.link) {
-                            return <Link key={key} to={e.link} onClick={e.onClick}>
+                            return <Link key={key} to={e.link} onClick={e.onClick} data-analytics='{"button_type":"context_menu"}'>
                                 {entry}
                             </Link>;
                         } else if (e.href) {
-                            return <a key={key} href={e.href} onClick={e.onClick}>
+                            return <a key={key} href={e.href} onClick={e.onClick} data-analytics='{"button_type":"context_menu"}'>
                                 {entry}
                             </a>;
                         } else {

@@ -18,7 +18,6 @@ import PrebuildLogsEmpty from "../images/prebuild-logs-empty.svg";
 import PrebuildLogsEmptyDark from "../images/prebuild-logs-empty-dark.svg";
 import { ThemeContext } from "../theme-context";
 import { PrebuildInstanceStatus } from "./Prebuilds";
-import { trackButton } from "../Analytics";
 
 const MonacoEditor = React.lazy(() => import('../components/MonacoEditor'));
 
@@ -131,7 +130,6 @@ export default function () {
     }
     try {
       setPrebuildWasTriggered(true);
-      trackButton("/<team_name>/<project_name>/configure","run_prebuild","primary_button");
       if (!isEditorDisabled) {
         await getGitpodService().server.setProjectConfiguration(project.id, gitpodYml);
       }
@@ -182,7 +180,7 @@ export default function () {
           {prebuildWasTriggered && <PrebuildInstanceStatus prebuildInstance={prebuildInstance} isDark={isDark} />}
           <div className="flex-grow" />
           {(prebuildInstance?.status.phase === "stopped" && !prebuildInstance?.status.conditions.failed)
-              ? <a className="my-auto" href={`/#${project?.cloneUrl}`}><button className="secondary" onClick={() => trackButton ("/<team_name>/<project_name>/configure","new_workspace","secondary_button")}>New Workspace</button></a>
+              ? <a className="my-auto" href={`/#${project?.cloneUrl}`}><button className="secondary">New Workspace</button></a>
               : <button disabled={true} className="secondary">New Workspace</button>}
           <button disabled={isDetecting || (prebuildWasTriggered && prebuildInstance?.status.phase !== "stopped")} onClick={buildProject}>Run Prebuild</button>
         </div>

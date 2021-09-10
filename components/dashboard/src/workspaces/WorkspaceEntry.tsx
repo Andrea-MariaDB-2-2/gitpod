@@ -14,7 +14,6 @@ import { Item, ItemField, ItemFieldContextMenu, ItemFieldIcon } from '../compone
 import PendingChangesDropdown from '../components/PendingChangesDropdown';
 import Tooltip from '../components/Tooltip';
 import { WorkspaceModel } from './workspace-model';
-import { trackWorkspaceButton } from "../Analytics";
 
 function getLabel(state: WorkspaceInstancePhase, conditions?: WorkspaceInstanceConditions) {
     if (conditions?.failed) {
@@ -45,50 +44,36 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
     const menuEntries: ContextMenuEntry[] = [
         {
             title: 'Open',
-            href: startUrl.toString(),
-            onClick: () => trackWorkspaceButton(ws.id,"open","kebab_menu",state)
+            href: startUrl.toString()
         }];
     if (state === 'running') {
         menuEntries.push({
             title: 'Stop',
-            onClick: () => {
-                trackWorkspaceButton(ws.id,"stop","kebab_menu",state);
-                stopWorkspace(ws.id);
-            }
+            onClick: () => stopWorkspace(ws.id)
         });
     }
     menuEntries.push(
         {
             title: 'Download',
-            href: downloadURL,
-            onClick: () => trackWorkspaceButton(ws.id,"download","kebab_menu",state)
+            href: downloadURL
         });
     if (!isAdmin) {
         menuEntries.push(
             {
                 title: 'Share',
                 active: !!ws.shareable,
-                onClick: () => {
-                    trackWorkspaceButton(ws.id,"share","kebab_menu",state);
-                    model.toggleShared(ws.id);
-                }
+                onClick: () => model.toggleShared(ws.id)
             },
             {
                 title: 'Pin',
                 active: !!ws.pinned,
                 separator: true,
-                onClick: () => {
-                    trackWorkspaceButton(ws.id,"pin","kebab_menu",state);
-                    model.togglePinned(ws.id);
-                }
+                onClick: () => model.togglePinned(ws.id)
             },
             {
                 title: 'Delete',
                 customFontStyle: 'text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300',
-                onClick: () => {
-                    trackWorkspaceButton(ws.id,"delete","kebab_menu",state);
-                    setModalVisible(true);
-                }
+                onClick: () => setModalVisible(true)
             }
         );
     }
@@ -99,7 +84,7 @@ export function WorkspaceEntry({ desc, model, isAdmin, stopWorkspace }: Props) {
             <WorkspaceStatusIndicator instance={desc?.latestInstance} />
         </ItemFieldIcon>
         <ItemField className="w-3/12 flex flex-col">
-            <a href={startUrl.toString()} onClick= {() => trackWorkspaceButton(ws.id,"open","primary_button",state) }><div className="font-medium text-gray-800 dark:text-gray-200 truncate hover:text-blue-600 dark:hover:text-blue-400">{ws.id}</div></a>
+            <a href={startUrl.toString()}><div className="font-medium text-gray-800 dark:text-gray-200 truncate hover:text-blue-600 dark:hover:text-blue-400">{ws.id}</div></a>
             <Tooltip content={project ? 'https://' + project : ''} allowWrap={true}>
                 <a href={project ? 'https://' + project : undefined}><div className="text-sm overflow-ellipsis truncate text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400">{project || 'Unknown'}</div></a>
             </Tooltip>
