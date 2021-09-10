@@ -15,6 +15,9 @@ import { TeamsContext, getCurrentTeam } from "../teams/teams-context";
 import { prebuildStatusIcon, prebuildStatusLabel } from "./Prebuilds";
 import { ContextMenuEntry } from "../components/ContextMenu";
 import { shortCommitMessage } from "./render-utils";
+import { ErrorCodes } from "@gitpod/gitpod-protocol/lib/messaging/error";
+import { openAuthorizeWindow } from "../provider-utils";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 export default function () {
     const history = useHistory();
@@ -34,9 +37,26 @@ export default function () {
 
     const [searchFilter, setSearchFilter] = useState<string | undefined>();
 
+    const [showAuthModal, setShowAuthModal] = useState<{ host: string } | undefined>(undefined);
+
     useEffect(() => {
         updateProject();
     }, [ teams ]);
+
+    useEffect(() => {
+        if (!project) {
+            return;
+        }
+        (async () => {
+            try {
+                await updateBranches();
+            } catch (error) {
+                if (error && error.code === ErrorCodes.NOT_AUTHENTICATED) {
+                    setShowAuthModal({ host: new URL(project.cloneUrl).hostname });
+                }
+            }
+        })();
+    }, [ project ]);
 
     const updateProject = async () => {
         if (!teams || !projectName) {
@@ -52,7 +72,12 @@ export default function () {
         }
 
         setProject(project);
+    }
 
+    const updateBranches = async () => {
+        if (!project) {
+            return;
+        }
         const details = await getGitpodService().server.getProjectOverview(project.id);
         if (details) {
             // default branch on top of the rest
@@ -60,6 +85,31 @@ export default function () {
             setBranches(branches);
         }
     }
+
+    const tryAuthorize = async (host: string, onSuccess: () => void) => {
+        try {
+            await openAuthorizeWindow({
+                host,
+                onSuccess,
+                onError: (error) => {
+                    console.log(error);
+                }
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const onConfirmShowAuthModal = async (host: string) => {
+        setShowAuthModal(undefined);
+        await tryAuthorize(host, async () => {
+            // update remote session
+            await getGitpodService().reconnect();
+
+            // retry fetching branches
+            updateBranches();
+        });
+    };
 
     const branchContextMenu = (branch: Project.BranchDetails) => {
         const entries: ContextMenuEntry[] = [];
@@ -121,6 +171,20 @@ export default function () {
 
     return <>
         <Header title="Branches" subtitle={<h2 className="tracking-wide">View recent active branches for <a className="text-gray-500 hover:text-gray-800 font-semibold" href={project?.cloneUrl}>{project?.name}</a>.</h2>} />
+
+        {showAuthModal && (
+            <ConfirmationModal
+                title="Authorize Provider"
+                areYouSureText="Do you want to authorize the following host to view project details?"
+                children={{
+                    name: showAuthModal.host,
+                }}
+                buttonText="Authorize Provider"
+                onClose={() => setShowAuthModal(undefined)}
+                onConfirm={() => onConfirmShowAuthModal(showAuthModal.host)}
+            />
+        )}
+
         <div className="lg:px-28 px-10">
             <div className="flex mt-8">
                 <div className="flex">
